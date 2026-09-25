@@ -801,6 +801,10 @@ body.modal-open {
     background: linear-gradient(135deg, #1abc9c, #16a085);
 }
 
+.legend-color.lake {
+    background: linear-gradient(135deg, #3498db, #2471a3);
+}
+
 .zone-items {
     max-height: 350px;
     overflow-y: auto;
@@ -4232,6 +4236,55 @@ body.modal-open {
 
 .lab-body {
     padding: 20px;
+}
+
+/* ===== 校区切换（平行板块） ===== */
+.title-sub-row {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    margin-top: 6px;
+}
+
+.campus-switcher {
+    display: inline-flex;
+    background: rgba(255, 255, 255, 0.12);
+    border: 1px solid rgba(255, 255, 255, 0.18);
+    border-radius: 10px;
+    padding: 3px;
+    gap: 2px;
+}
+
+.campus-tab {
+    border: none;
+    background: transparent;
+    color: rgba(255, 255, 255, 0.75);
+    font-size: 13px;
+    font-weight: 500;
+    padding: 6px 16px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.25s ease;
+    white-space: nowrap;
+}
+
+.campus-tab:hover {
+    color: #ffffff;
+    background: rgba(255, 255, 255, 0.1);
+}
+
+.campus-tab.active {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: #ffffff;
+    box-shadow: 0 3px 10px rgba(102, 126, 234, 0.45);
+}
+
+@media (max-width: 900px) {
+    .title-sub-row {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 6px;
+    }
 }
 
 .lab-tabs {

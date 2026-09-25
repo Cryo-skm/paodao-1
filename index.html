@@ -6,6 +6,11 @@
     <title>上海大学之嘉定校区·跑刀</title>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <link rel="stylesheet" href="styles.css">
+    <script type="text/javascript">
+        window._AMapSecurityConfig = {
+            securityJsCode: '75b084dd4a9d30ca183b1b5ca4741c3c'
+        };
+    </script>
     <script src="https://webapi.amap.com/maps?v=2.0&key=4ae6483e7abac4f6d589095e7178cb3b"></script>
     
     <!-- Bmob 后端云 - 纯 REST API 调用，无需额外 SDK -->
@@ -18,7 +23,7 @@
             <div class="login-left">
                 <div class="logo-section">
                     <div class="logo">🏛️</div>
-                    <h1>上海大学之嘉定校区·跑刀</h1>
+                    <h1 id="loginTitle">上海大学之嘉定校区·跑刀</h1>
                     <p>探索校园，分享生活</p>
                 </div>
                 <div class="illustration">
@@ -213,8 +218,14 @@
         <div class="header">
             <div class="header-content">
                 <div class="title-section">
-                    <h1><i class="fas fa-map-marker-alt"></i> 上海大学之嘉定校区·跑刀</h1>
-                    <p class="subtitle">校园论坛系统</p>
+                    <h1><i class="fas fa-map-marker-alt"></i> <span id="headerTitle">上海大学之嘉定校区·跑刀</span></h1>
+                    <div class="title-sub-row">
+                        <div class="campus-switcher" id="campusSwitcher">
+                            <button class="campus-tab active" data-campus="jiading" onclick="switchCampus('jiading')">嘉定校区</button>
+                            <button class="campus-tab" data-campus="baoshan" onclick="switchCampus('baoshan')">宝山校区</button>
+                        </div>
+                        <p class="subtitle">校园论坛系统</p>
+                    </div>
                 </div>
                 <div class="header-actions">
                     <div class="search-bar">
@@ -381,6 +392,10 @@
                         <div class="legend-item">
                             <span class="legend-color library"></span>
                             <span>图书馆</span>
+                        </div>
+                        <div class="legend-item">
+                            <span class="legend-color lake"></span>
+                            <span>湖泊</span>
                         </div>
                     </div>
                 </div>

@@ -385,6 +385,11 @@ const SHU_JIADING_COORDS = {
     lng: 121.2491
 };
 
+const SHU_BAOSHAN_COORDS = {
+    lat: 31.315814,
+    lng: 121.393459
+};
+
 const zoneTypeColors = {
     teaching: { fill: 'rgba(52, 152, 219, 0.5)', stroke: '#3498db', color: '#3498db', icon: 'building' },
     admin: { fill: 'rgba(155, 89, 182, 0.5)', stroke: '#9b59b6', color: '#9b59b6', icon: 'landmark' },
@@ -396,6 +401,7 @@ const zoneTypeColors = {
     canteen: { fill: 'rgba(243, 156, 18, 0.5)', stroke: '#f39c12', color: '#f39c12', icon: 'utensils' },
     dorm: { fill: 'rgba(155, 89, 182, 0.5)', stroke: '#9b59b6', color: '#9b59b6', icon: 'home' },
     stadium: { fill: 'rgba(46, 204, 113, 0.5)', stroke: '#2ecc71', color: '#2ecc71', icon: 'futbol' },
+    lake: { fill: 'rgba(52, 152, 219, 0.5)', stroke: '#2980b9', color: '#3498db', icon: 'water' },
     other: { fill: 'rgba(127, 140, 141, 0.5)', stroke: '#7f8c8d', color: '#7f8c8d', icon: 'building' }
 };
 
@@ -442,6 +448,57 @@ const campusBuildings = [
     { id: 'taoanliubei', name: '陶庵留碧碑', position: [121.2483, 31.3724], type: 'other', typeName: '其他' }
 ];
 
+// 宝山校区 - 只标注主要建筑物（坐标来自高德 POI 查询，GCJ-02）
+const baoshanBuildings = [
+    // 地标 / 图书馆
+    { id: 'bs_qwc_library', name: '钱伟长图书馆', position: [121.399544, 31.314321], type: 'libraryMain', typeName: '图书馆' },
+    { id: 'bs_library', name: '宝山校区图书馆', position: [121.392253, 31.316804], type: 'library', typeName: '图书馆' },
+    { id: 'bs_weichang', name: '伟长楼', position: [121.395300, 31.317361], type: 'admin', typeName: '行政楼' },
+    { id: 'bs_museum', name: '上海大学博物馆', position: [121.394202, 31.317525], type: 'other', typeName: '其他' },
+
+    // 运动设施
+    { id: 'bs_gym', name: '体育馆', position: [121.395379, 31.319555], type: 'gym', typeName: '运动设施' },
+    { id: 'bs_swim', name: '游泳馆', position: [121.394053, 31.319431], type: 'gym', typeName: '运动设施' },
+    { id: 'bs_stadium', name: '1号体育场', position: [121.396562, 31.319348], type: 'stadium', typeName: '运动设施' },
+    { id: 'bs_football', name: '足球场', position: [121.388382, 31.313724], type: 'stadium', typeName: '运动设施' },
+
+    // 食堂
+    { id: 'bs_shuixiu', name: '水秀食堂', position: [121.395735, 31.316448], type: 'canteen', typeName: '食堂' },
+    { id: 'bs_yixin', name: '益新食堂', position: [121.389196, 31.316197], type: 'canteen', typeName: '食堂' },
+    { id: 'bs_ermei', name: '尔美食堂', position: [121.391351, 31.319248], type: 'canteen', typeName: '食堂' },
+
+    // 学院 / 教学楼
+    { id: 'bs_art', name: '上海美术学院', position: [121.393582, 31.312931], type: 'teaching', typeName: '教学楼' },
+    { id: 'bs_sfl', name: '外国语学院', position: [121.394525, 31.314275], type: 'teaching', typeName: '教学楼' },
+    { id: 'bs_econ', name: '经管大楼', position: [121.399005, 31.313094], type: 'teaching', typeName: '教学楼' },
+    { id: 'bs_vlou', name: 'V楼国际教育学院', position: [121.388925, 31.318175], type: 'teaching', typeName: '教学楼' },
+
+    // 景观 / 其他
+    { id: 'bs_lake', name: '泮池', position: [121.3914, 31.3152], type: 'lake', typeName: '湖泊' },
+    { id: 'bs_square', name: '名人广场', position: [121.393896, 31.314453], type: 'other', typeName: '其他' },
+    { id: 'bs_hospital', name: '校医院', position: [121.388112, 31.320001], type: 'other', typeName: '其他' }
+];
+
+// 校区配置 - 平行板块
+const campusConfigs = {
+    jiading: {
+        name: '嘉定校区',
+        title: '上海大学之嘉定校区·跑刀',
+        center: [SHU_JIADING_COORDS.lng, SHU_JIADING_COORDS.lat],
+        zoom: 17,
+        buildings: campusBuildings
+    },
+    baoshan: {
+        name: '宝山校区',
+        title: '上海大学之宝山校区·跑刀',
+        center: [SHU_BAOSHAN_COORDS.lng, SHU_BAOSHAN_COORDS.lat],
+        zoom: 16,
+        buildings: baoshanBuildings
+    }
+};
+
+let currentCampus = 'jiading';
+
 let zones = [];
 let forumPosts = {};
 let canteenFoods = {};
@@ -467,9 +524,10 @@ function handleBuildingClick(zoneId) {
 }
 
 function initMap() {
+    const initCfg = campusConfigs[currentCampus];
     map = new AMap.Map('campusMap', {
-        center: [SHU_JIADING_COORDS.lng, SHU_JIADING_COORDS.lat],
-        zoom: 17,
+        center: initCfg.center,
+        zoom: initCfg.zoom,
         viewMode: '3D',
         pitch: 0,
         rotation: 0,
@@ -483,7 +541,7 @@ function initMap() {
         initMapControls();
     });
 
-    zones = campusBuildings;
+    zones = initCfg.buildings;
     addZoneMarkers();
     updateZoneList();
     updateNewsList();
@@ -495,11 +553,52 @@ function initMap() {
     });
 }
 
+// 切换校区（平行板块）
+function switchCampus(key) {
+    const cfg = campusConfigs[key];
+    if (!cfg || key === currentCampus) return;
+
+    // 关闭可能已打开的建筑弹窗
+    const forumModal = document.getElementById('forumModal');
+    if (forumModal && forumModal.style.display === 'flex') closeForum();
+    const canteenModal = document.getElementById('canteenModal');
+    if (canteenModal && canteenModal.style.display === 'flex') closeCanteen();
+
+    currentCampus = key;
+
+    // 清除当前校区的地图标记
+    markers.forEach(({ marker }) => map.remove(marker));
+    markers = [];
+    zonePolygons = [];
+
+    zones = cfg.buildings;
+    map.setZoomAndCenter(cfg.zoom, cfg.center);
+    addZoneMarkers();
+    updateZoneList();
+    updateNewsList();
+    updateStats();
+
+    // 更新页面标题
+    document.getElementById('headerTitle').textContent = cfg.title;
+    const loginTitle = document.getElementById('loginTitle');
+    if (loginTitle) loginTitle.textContent = cfg.title;
+    document.title = cfg.title;
+
+    // 更新切换按钮状态，清空搜索框
+    document.querySelectorAll('.campus-tab').forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.campus === key);
+    });
+    document.getElementById('searchInput').value = '';
+    const searchResults = document.getElementById('searchResults');
+    if (searchResults) searchResults.innerHTML = '';
+}
+
 function initMapControls() {
     document.getElementById('zoomIn').addEventListener('click', () => map.zoomIn());
     document.getElementById('zoomOut').addEventListener('click', () => map.zoomOut());
     document.getElementById('resetView').addEventListener('click', () => {
-        map.setZoomAndCenter(17, [SHU_JIADING_COORDS.lng, SHU_JIADING_COORDS.lat]);
+        const cfg = campusConfigs[currentCampus];
+        map.setZoomAndCenter(cfg.zoom, cfg.center);
     });
     initLegendClickHandlers();
 }
@@ -518,12 +617,9 @@ function getMarkerScale(zoom) {
 
 function updateMarkersForZoom(zoom) {
     const scale = getMarkerScale(zoom);
-    markers.forEach(({ marker, zone }) => {
-        const container = marker.getContentElement();
-        if (container) {
-            container.style.transform = `scale(${scale})`;
-            container.style.transformOrigin = 'center bottom';
-        }
+    document.querySelectorAll('.building-marker-container').forEach(container => {
+        container.style.transform = `scale(${scale})`;
+        container.style.transformOrigin = 'center bottom';
     });
 }
 
@@ -1345,8 +1441,8 @@ function openAboutModal() {
 }
 
 function updateStats() {
-    // 更新建筑数量（从 campusBuildings 获取真实数量）
-    document.getElementById('totalBuildings').textContent = campusBuildings.length;
+    // 更新建筑数量（当前校区）
+    document.getElementById('totalBuildings').textContent = zones.length;
     
     // 更新活跃论坛数量
     const activeForums = zones.filter(z => forumPosts[z.id] && Object.keys(forumPosts[z.id]).length > 0).length;
@@ -2047,6 +2143,16 @@ function loadForumPosts() {
         updateZoneList();
         updateNewsList();
         updateStats();
+        // 若论坛弹窗正打开，重新渲染列表，否则新帖不会显示（保留当前搜索条件）
+        const forumModal = document.getElementById('forumModal');
+        if (currentZone && forumModal && forumModal.style.display !== 'none') {
+            renderForumContent(
+                currentZone.id,
+                document.getElementById('forumSearchInput').value.trim(),
+                document.getElementById('forumDateInput').value,
+                document.getElementById('forumSearchType').value
+            );
+        }
     }).catch(() => {
         console.log('加载帖子失败，使用本地数据');
     });
@@ -4461,6 +4567,11 @@ loadCuotibenData();
         currentRouteIndex = 0;
         virtualRunnerState = 'running';
         
+        // 重置本次模拟的里程与时长，并刷新数据面板
+        runDistance = 0;
+        runDuration = 0;
+        updateRunStats();
+        
         updateSimulationStatus('running', `正在模拟跑步... 速度: ${currentSpeed} km/h`);
         
         // 根据速度调整时间间隔（速度越快，间隔越小）
@@ -4484,9 +4595,17 @@ loadCuotibenData();
                 speed: speedWithVariation
             });
             
+            // 累计里程与时长，并刷新数据面板（距离/时长/卡路里）
+            if (currentTrackPoints.length > 1) {
+                const prev = currentTrackPoints[currentTrackPoints.length - 2];
+                runDistance += haversineDistance(prev.lng, prev.lat, point.lng, point.lat);
+            }
+            runDuration += Math.max(1, Math.round(interval / 1000));
+            
             // 更新显示
             updateGpsDisplay(point.lng, point.lat);
             updateTrackPointsDisplay();
+            updateRunStats();
             
             currentRouteIndex++;
         }, interval);
