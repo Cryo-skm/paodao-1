@@ -1,0 +1,1114 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>上海大学之嘉定校区·跑刀</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+    <script src="https://webapi.amap.com/maps?v=2.0&key=4ae6483e7abac4f6d589095e7178cb3b"></script>
+    
+    <!-- Bmob 后端云 - 纯 REST API 调用，无需额外 SDK -->
+</head>
+<body>
+    <div id="loginModal" class="modal">
+        <div class="login-container">
+            <button class="close-btn" style="position:absolute;top:20px;right:20px;z-index:100;background:rgba(255,255,255,0.2);color:white;" onclick="closeModal()" title="关闭登录">✕</button>
+                    <button class="modal-close-btn" style="position:absolute;top:20px;right:60px;z-index:100;" onclick="exitPage()" title="退出页面">✕</button>
+            <div class="login-left">
+                <div class="logo-section">
+                    <div class="logo">🏛️</div>
+                    <h1>上海大学之嘉定校区·跑刀</h1>
+                    <p>探索校园，分享生活</p>
+                </div>
+                <div class="illustration">
+                    <div class="illustration-item">📚</div>
+                    <div class="illustration-item">🏀</div>
+                    <div class="illustration-item">🍽️</div>
+                    <div class="illustration-item">⚽</div>
+                </div>
+            </div>
+            <div class="login-right">
+                <!-- 步骤指示器 -->
+                <div class="auth-steps" id="authSteps" style="display:none;">
+                    <div class="step active"><span>1</span><label>输入用户名</label></div>
+                    <div class="step"><span>2</span><label>验证身份</label></div>
+                    <div class="step"><span>3</span><label>设置新密码</label></div>
+                </div>
+
+                <!-- 登录模式选择：密码/验证码 -->
+                <div id="loginModeSelector">
+                    <div class="form-tabs">
+                        <button id="tabLogin" class="tab active">登录</button>
+                        <button id="tabRegister" class="tab">注册</button>
+                        <button id="tabForgot" class="tab">找回密码</button>
+                    </div>
+                </div>
+
+                <!-- 登录表单（密码模式 + 验证码模式切换） -->
+                <div id="loginForm" class="form-panel active">
+                    <div class="mode-switcher">
+                        <button id="pwdModeBtn" class="mode-btn active">密码登录</button>
+                        <button id="codeModeBtn" class="mode-btn">验证码登录</button>
+                    </div>
+
+                    <!-- 密码登录 -->
+                    <form id="pwdLoginForm" class="sub-form active">
+                        <div class="input-group">
+                            <span class="input-icon">👤</span>
+                            <input type="text" id="loginName" placeholder="用户名" required>
+                        </div>
+                        <div class="input-group">
+                            <span class="input-icon">🔑</span>
+                            <input type="password" id="loginPassword" placeholder="密码" required>
+                        </div>
+                        <div class="btn-row">
+                            <button type="button" class="submit-btn secondary" onclick="closeModal()">取消</button>
+                            <button type="submit" class="submit-btn">登录</button>
+                        </div>
+                    </form>
+
+                    <!-- 验证码登录 -->
+                    <form id="codeLoginForm" class="sub-form">
+                        <div class="input-group">
+                            <span class="input-icon">👤</span>
+                            <input type="text" id="loginCodeName" placeholder="用户名" required>
+                        </div>
+                        <div class="input-group with-btn">
+                            <span class="input-icon">📱</span>
+                            <input type="text" id="loginSmsCode" placeholder="短信验证码" required>
+                            <button type="button" id="sendLoginCodeBtn" class="inline-btn">获取验证码</button>
+                        </div>
+                        <div class="btn-row">
+                            <button type="button" class="submit-btn secondary" onclick="closeModal()">取消</button>
+                            <button type="submit" class="submit-btn">登录</button>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- 注册表单 -->
+                <div id="registerForm" class="form-panel">
+                    <form id="registerFormContent">
+                        <div class="input-group">
+                            <span class="input-icon">👤</span>
+                            <input type="text" id="registerName" placeholder="用户名（昵称）" required>
+                        </div>
+                        <div class="input-group">
+                            <span class="input-icon">📱</span>
+                            <input type="tel" id="registerPhone" placeholder="手机号码" pattern="1[3-9]\d{9}" required>
+                        </div>
+                        <div class="input-group with-btn">
+                            <span class="input-icon">✉️</span>
+                            <input type="text" id="registerSmsCode" placeholder="短信验证码" required>
+                            <button type="button" id="sendRegisterCodeBtn" class="inline-btn">获取验证码</button>
+                        </div>
+                        <div class="input-group">
+                            <span class="input-icon">🔐</span>
+                            <input type="password" id="registerPassword" placeholder="设置密码" required minlength="6">
+                        </div>
+                        <div class="input-group">
+                            <span class="input-icon">🔑</span>
+                            <input type="password" id="registerConfirm" placeholder="确认密码" required minlength="6">
+                        </div>
+                        <div class="input-group avatar-upload-group">
+                            <label class="upload-label">
+                                <div class="avatar-preview">
+                                    <img id="registerAvatarPreview" src="" alt="">
+                                    <div class="avatar-hint">点击上传头像</div>
+                                </div>
+                            </label>
+                            <input type="file" id="registerAvatarInput" accept="image/*" style="display:none;">
+                            <span class="upload-text">（可选）</span>
+                        </div>
+                        <div class="btn-row">
+                            <button type="button" class="submit-btn secondary" onclick="showLogin()">返回登录</button>
+                            <button type="submit" class="submit-btn register-btn">注册</button>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- 找回密码 - 步骤1：输入用户名 -->
+                <div id="forgotForm" class="form-panel">
+                    <form id="forgotStep1Form">
+                        <h3 style="text-align:center; color:#6c63ff; margin-bottom:20px;">找回密码</h3>
+                        <div class="input-group">
+                            <span class="input-icon">👤</span>
+                            <input type="text" id="forgotUsername" placeholder="请输入用户名" required>
+                        </div>
+                        <div class="btn-row">
+                            <button type="button" class="submit-btn secondary" onclick="showLogin()">返回登录</button>
+                            <button type="submit" class="submit-btn">下一步</button>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- 找回密码 - 步骤2：发送验证码验证 -->
+                <div id="forgotStep2" class="form-panel" style="display:none;">
+                    <form id="forgotStep2Form">
+                        <h3 style="text-align:center; color:#6c63ff; margin-bottom:20px;">身份验证</h3>
+                        <div class="hint-box" id="forgotPhoneHint">
+                            <i class="fas fa-info-circle"></i>
+                            <span>验证码将发送到您绑定的手机号</span>
+                        </div>
+                        <div class="input-group with-btn">
+                            <span class="input-icon">📱</span>
+                            <input type="text" id="forgotSmsCode" placeholder="短信验证码" required>
+                            <button type="button" id="sendForgotCodeBtn" class="inline-btn">获取验证码</button>
+                        </div>
+                        <div class="form-options">
+                            <label>
+                                <input type="radio" name="forgotMode" value="sms" checked> 短信验证码
+                            </label>
+                            <label>
+                                <input type="radio" name="forgotMode" value="pwd"> 旧密码验证
+                            </label>
+                        </div>
+                        <!-- 旧密码验证模式 -->
+                        <div id="oldPwdGroup" class="input-group" style="display:none;">
+                            <span class="input-icon">🔑</span>
+                            <input type="password" id="forgotOldPassword" placeholder="旧密码">
+                        </div>
+                        <div class="btn-row">
+                            <button type="button" class="submit-btn secondary" onclick="showForgotStep1()">返回上一步</button>
+                            <button type="submit" class="submit-btn">验证</button>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- 找回密码 - 步骤3：设置新密码 -->
+                <div id="forgotStep3" class="form-panel" style="display:none;">
+                    <form id="forgotStep3Form">
+                        <h3 style="text-align:center; color:#6c63ff; margin-bottom:20px;">设置新密码</h3>
+                        <div class="input-group">
+                            <span class="input-icon">🔑</span>
+                            <input type="password" id="forgotNewPassword" placeholder="新密码（至少6位）" required minlength="6">
+                        </div>
+                        <div class="input-group">
+                            <span class="input-icon">🔑</span>
+                            <input type="password" id="forgotConfirmPassword" placeholder="确认新密码" required minlength="6">
+                        </div>
+                        <div class="btn-row">
+                            <button type="button" class="submit-btn secondary" onclick="showForgotStep2()">返回上一步</button>
+                            <button type="submit" class="submit-btn">重置密码</button>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- 其他登录方式 -->
+                <div class="other-login">
+                    <div class="divider">
+                        <span>其他方式登录</span>
+                    </div>
+                    <div class="social-icons">
+                        <button class="social-btn" title="微信登录">💬</button>
+                        <button class="social-btn" title="QQ登录">🐧</button>
+                        <button class="social-btn" title="微博登录">📱</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="app" class="app-container">
+        <div class="header">
+            <div class="header-content">
+                <div class="title-section">
+                    <h1><i class="fas fa-map-marker-alt"></i> 上海大学之嘉定校区·跑刀</h1>
+                    <p class="subtitle">校园论坛系统</p>
+                </div>
+                <div class="header-actions">
+                    <div class="search-bar">
+                        <input type="text" id="searchInput" placeholder="搜索建筑名称..." onkeyup="handleSearchKeyup(event)">
+                        <button class="search-btn" onclick="searchBuilding()">
+                            <i class="fas fa-search"></i>
+                        </button>
+                        <div id="searchResults" class="search-results"></div>
+                    </div>
+                    <button id="loginBtn" class="login-btn" onclick="openLoginModal()">
+                        <i class="fas fa-user"></i> 登录
+                    </button>
+                    <input type="file" id="userAvatarInput" accept="image/*" style="display:none;">
+                    <div id="userInfo" class="user-info" style="display:none;">
+                        <div class="profile-trigger" id="profileTrigger" onclick="toggleProfileDropdown()" style="cursor:pointer;">
+                            <img id="userAvatar" src="" alt="头像" class="avatar">
+                            <span id="userName"></span>
+                            <i class="fas fa-chevron-down profile-arrow"></i>
+                        </div>
+                        <div class="profile-dropdown" id="profileDropdown">
+                            <div class="profile-header">
+                                <img id="dropdownAvatar" src="" alt="" class="profile-dropdown-avatar">
+                                <div class="profile-dropdown-info">
+                                    <div class="profile-dropdown-name" id="dropdownName"></div>
+                                    <div class="profile-dropdown-phone" id="dropdownPhone"></div>
+                                </div>
+                            </div>
+                            <div class="profile-menu">
+                                <div class="profile-menu-item" onclick="handleProfileAction('changeAvatar'); return false;">
+                                    <i class="fas fa-user-circle"></i>
+                                    <span>修改头像</span>
+                                </div>
+                                <div class="profile-menu-item" onclick="handleProfileAction('changeNickname'); return false;">
+                                    <i class="fas fa-edit"></i>
+                                    <span>修改昵称</span>
+                                </div>
+                                <div class="profile-menu-item" onclick="handleProfileAction('changePassword'); return false;">
+                                    <i class="fas fa-key"></i>
+                                    <span>修改密码</span>
+                                </div>
+                                <div class="profile-menu-item" onclick="handleProfileAction('bindPhone'); return false;">
+                                    <i class="fas fa-phone"></i>
+                                    <span>绑定手机</span>
+                                </div>
+                                <div class="profile-menu-item" onclick="handleProfileAction('security'); return false;">
+                                    <i class="fas fa-shield-alt"></i>
+                                    <span>账户安全</span>
+                                </div>
+                                <div class="profile-menu-item" onclick="handleProfileAction('about'); return false;">
+                                    <i class="fas fa-info-circle"></i>
+                                    <span>关于本站</span>
+                                </div>
+                            </div>
+                            <div class="profile-footer">
+                                <button id="logoutBtn" class="logout-btn" onclick="doLogout(); return false;">
+                                    <i class="fas fa-sign-out-alt"></i> 退出登录
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <button id="paimonBtn" class="paimon-btn" onclick="togglePaimonChat()">
+                        <svg class="paimon-avatar" viewBox="0 0 60 60" xmlns="http://www.w3.org/2000/svg">
+                            <defs>
+                                <radialGradient id="haloGrad" cx="50%" cy="15%" r="60%">
+                                    <stop offset="0%" stop-color="#FFD700" stop-opacity="0.9"/>
+                                    <stop offset="70%" stop-color="#FFA500" stop-opacity="0.3"/>
+                                    <stop offset="100%" stop-color="#FFA500" stop-opacity="0"/>
+                                </radialGradient>
+                                <radialGradient id="faceGrad" cx="50%" cy="50%">
+                                    <stop offset="0%" stop-color="#FFFFFF"/>
+                                    <stop offset="100%" stop-color="#F0E6D2"/>
+                                </radialGradient>
+                            </defs>
+                            <circle cx="30" cy="35" r="22" fill="url(#haloGrad)"/>
+                            <ellipse cx="30" cy="38" rx="15" ry="17" fill="url(#faceGrad)" stroke="#D4B896" stroke-width="1"/>
+                            <ellipse cx="30" cy="22" rx="16" ry="8" fill="#FFFFFF" stroke="#E0E0E0" stroke-width="1"/>
+                            <circle cx="24" cy="38" r="2.5" fill="#4A3728"/>
+                            <circle cx="36" cy="38" r="2.5" fill="#4A3728"/>
+                            <circle cx="24.5" cy="37.5" r="0.8" fill="#FFFFFF"/>
+                            <circle cx="36.5" cy="37.5" r="0.8" fill="#FFFFFF"/>
+                            <ellipse cx="20" cy="43" rx="3" ry="2" fill="#FFB6C1" opacity="0.6"/>
+                            <ellipse cx="40" cy="43" rx="3" ry="2" fill="#FFB6C1" opacity="0.6"/>
+                            <path d="M 27 46 Q 30 48 33 46" stroke="#D4A574" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+                            <circle cx="15" cy="30" r="2" fill="#FFE4B5" stroke="#D4B896"/>
+                            <circle cx="45" cy="30" r="2" fill="#FFE4B5" stroke="#D4B896"/>
+                        </svg>
+                        <span class="paimon-pulse"></span>
+                    </button>
+                    <button id="exitBtn" class="close-btn" onclick="exitPage()" title="退出页面">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <div id="paimonChat" class="paimon-chat" style="display: none;">
+            <div class="paimon-header">
+                <div class="paimon-title">
+                    <span class="paimon-icon">🍦</span>
+                    <span>派蒙助手</span>
+                </div>
+                <button class="paimon-close" onclick="togglePaimonChat()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="paimon-messages" id="paimonMessages">
+                    <div class="paimon-message paimon-bot">
+                        <img src="https://neeko-copilot.bytedance.net/api/text_to_image?prompt=cute%20chibi%20Paimon%20from%20Genshin%20Impact%20white%20hair%20golden%20halo%20closed%20eyes%20happy%20expression%20kawaii%20anime%20style%20transparent%20background%20simple%20clean&image_size=square_hd" alt="派蒙" class="message-avatar paimon-img">
+                        <div class="message-content">
+                            <p>呀！旅行者有什么事吗？本派蒙在这儿呢~ ✨</p>
+                        </div>
+                    </div>
+                </div>
+            <div class="paimon-input-area">
+                <input type="text" id="paimonInput" placeholder="和派蒙聊天..." onkeyup="handlePaimonKeyup(event)">
+                <button class="paimon-send" onclick="sendPaimonMessage()">
+                    <i class="fas fa-paper-plane"></i>
+                </button>
+            </div>
+        </div>
+
+        <div class="main-container">
+            <div class="sidebar">
+                <div class="stats-panel">
+                    <h3><i class="fas fa-info-circle"></i> 校园信息</h3>
+                    <div class="stat-item">
+                        <span class="stat-label">建筑数量</span>
+                        <span class="stat-value" id="totalBuildings">0</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">活跃论坛</span>
+                        <span class="stat-value" id="totalActiveForums">0</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">总帖子数</span>
+                        <span class="stat-value" id="totalPosts">0</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">注册用户</span>
+                        <span class="stat-value" id="totalUsers">0</span>
+                    </div>
+                </div>
+
+                <div class="legend-panel">
+                    <h3><i class="fas fa-map-pin"></i> 区域类型</h3>
+                    <div class="legend-items">
+                        <div class="legend-item">
+                            <span class="legend-color building"></span>
+                            <span>教学楼</span>
+                        </div>
+                        <div class="legend-item">
+                            <span class="legend-color dormitory"></span>
+                            <span>宿舍</span>
+                        </div>
+                        <div class="legend-item">
+                            <span class="legend-color canteen"></span>
+                            <span>食堂</span>
+                        </div>
+                        <div class="legend-item">
+                            <span class="legend-color sports"></span>
+                            <span>运动设施</span>
+                        </div>
+                        <div class="legend-item">
+                            <span class="legend-color library"></span>
+                            <span>图书馆</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="zone-list">
+                    <h3><i class="fas fa-list"></i> 建筑列表</h3>
+                    <div class="zone-items" id="zoneList">
+                    </div>
+                </div>
+
+                <!-- 错题本入口 -->
+                <div class="cuotiben-entry">
+                    <button class="cuotiben-btn" onclick="openCuotibenModal()">
+                        <span class="cuotiben-icon">📝</span>
+                        <span class="cuotiben-label">错题本</span>
+                        <span class="cuotiben-sub">管理我的错题笔记</span>
+                    </button>
+                </div>
+
+                <!-- 贪吃蛇小游戏入口 -->
+                <div class="snake-entry">
+                    <button class="snake-btn" onclick="openSnakeGame()">
+                        <span class="snake-icon">🐍</span>
+                        <span class="snake-label">贪吃蛇</span>
+                        <span class="snake-sub">经典小游戏 · 挑战最高分</span>
+                    </button>
+                </div>
+                
+                <!-- 校园跑入口 -->
+                <div class="campus-run-entry">
+                    <button class="campus-run-btn" onclick="openCampusRun()">
+                        <span class="campus-run-icon">🏃</span>
+                        <span class="campus-run-label">校园跑</span>
+                        <span class="campus-run-sub">自动跑步打卡 · 健康运动</span>
+                    </button>
+                </div>
+                
+                <!-- 实验室管理入口 -->
+                <div class="lab-entry">
+                    <button class="lab-btn" onclick="openLabManagement()">
+                        <span class="lab-icon">🔬</span>
+                        <span class="lab-label">实验室管理</span>
+                        <span class="lab-sub">预约实验台 · 设备管理</span>
+                    </button>
+                </div>
+                
+                <div class="debug-panel">
+                    <h3><i class="fas fa-cog"></i> 位置调试</h3>
+                    <div class="debug-info">
+                        <p>点击地图获取坐标:</p>
+                        <p id="clickCoords">经度: --, 纬度: --</p>
+                    </div>
+                    <div class="debug-controls">
+                        <label>选择建筑调整:</label>
+                        <select id="buildingSelect">
+                            <option value="">选择建筑...</option>
+                        </select>
+                        <button class="adjust-btn" onclick="setCurrentPosition()">设为当前位置</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="map-container">
+                <div id="campusMap"></div>
+                <div class="map-controls">
+                    <button class="control-btn" id="zoomIn"><i class="fas fa-plus"></i></button>
+                    <button class="control-btn" id="zoomOut"><i class="fas fa-minus"></i></button>
+                    <button class="control-btn" id="resetView"><i class="fas fa-compass"></i></button>
+                </div>
+            </div>
+
+            <div class="info-panel">
+                <h3><i class="fas fa-newspaper"></i> 最新动态</h3>
+                <div class="news-list" id="newsList">
+                </div>
+            </div>
+        </div>
+
+        <div id="forumModal" class="forum-modal" style="display: none;">
+            <div class="forum-container">
+                <div class="forum-header">
+                    <h2 id="forumTitle">区域论坛</h2>
+                    <button class="close-btn" onclick="closeForum()">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                
+                <div class="forum-search-bar">
+                    <input type="text" id="forumSearchInput" placeholder="搜索关键词...">
+                    <input type="date" id="forumDateInput">
+                    <select id="forumSearchType">
+                        <option value="keyword">关键词</option>
+                        <option value="user">用户</option>
+                    </select>
+                    <button class="forum-search-btn" onclick="searchForum()">
+                        <i class="fas fa-search"></i> 搜索
+                    </button>
+                </div>
+                
+                <div class="forum-content" id="forumContent">
+                </div>
+                
+                <div class="forum-input">
+                    <div class="forum-upload-area">
+                        <div class="upload-btn" onclick="document.getElementById('fileUpload').click()">
+                            <i class="fas fa-image"></i> 图片
+                        </div>
+                        <div class="upload-btn video-upload" onclick="document.getElementById('videoUpload').click()">
+                            <i class="fas fa-video"></i> 视频
+                        </div>
+                        <div class="upload-btn file-upload" onclick="document.getElementById('docUpload').click()">
+                            <i class="fas fa-file"></i> 文件
+                        </div>
+                        <input type="file" id="fileUpload" accept="image/*" style="display: none;" onchange="handleFileUpload(this, 'image')">
+                        <input type="file" id="videoUpload" accept="video/*" style="display: none;" onchange="handleFileUpload(this, 'video')">
+                        <input type="file" id="docUpload" accept=".pdf,.doc,.docx,.txt,.zip" style="display: none;" onchange="handleFileUpload(this, 'document')">
+                    </div>
+                    <textarea id="postContent" placeholder="分享你的想法..."></textarea>
+                    <div id="uploadedFiles" class="uploaded-files"></div>
+                    <button class="submit-btn" onclick="submitPost()">
+                        <i class="fas fa-paper-plane"></i> 发布
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div id="canteenModal" class="canteen-modal" style="display: none;">
+            <div class="canteen-container">
+                <div class="canteen-header">
+                    <h2 id="canteenTitle">食堂评分</h2>
+                    <button class="close-btn" onclick="closeCanteen()">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                
+                <div class="canteen-content" id="canteenContent">
+                </div>
+                
+                <div class="canteen-input">
+                    <input type="text" id="newDishName" placeholder="添加新菜品...">
+                    <button class="add-dish-btn" onclick="addDish()">
+                        <i class="fas fa-plus"></i> 添加菜品
+                    </button>
+                    <div class="food-select-container">
+                        <select id="foodSelect">
+                            <option value="">选择菜品进行评价</option>
+                        </select>
+                        <div class="rating-stars">
+                            <i class="fas fa-star" data-rating="1"></i>
+                            <i class="fas fa-star" data-rating="2"></i>
+                            <i class="fas fa-star" data-rating="3"></i>
+                            <i class="fas fa-star" data-rating="4"></i>
+                            <i class="fas fa-star" data-rating="5"></i>
+                        </div>
+                    </div>
+                    <textarea id="foodComment" placeholder="说说你的评价..."></textarea>
+                    <button class="submit-btn" onclick="submitRating()">
+                        <i class="fas fa-star"></i> 提交评分
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 错题本模态框 -->
+        <div id="cuotibenModal" class="cuotiben-modal" style="display: none;">
+            <div class="cuotiben-container">
+
+                <!-- 头部 -->
+                <div class="cuotiben-header">
+                    <h2><i class="fas fa-book-open"></i> 我的错题本</h2>
+                    <div class="cuotiben-header-actions">
+                        <button class="cuotiben-header-btn" onclick="openCuotibenCreateModal()">
+                            <i class="fas fa-plus-circle"></i> 新建错题
+                        </button>
+                        <button class="close-btn" onclick="closeCuotibenModal()">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- 搜索栏 -->
+                <div class="cuotiben-search-bar">
+                    <div class="cuotiben-search-input-wrap">
+                        <i class="fas fa-search cuotiben-search-icon"></i>
+                        <input type="text" id="cuotibenSearchInput" placeholder="搜索标题、内容、标签..." oninput="renderCuotibenList()">
+                    </div>
+                    <input type="date" id="cuotibenDateFrom" title="起始日期" onchange="renderCuotibenList()">
+                    <span class="cuotiben-date-sep">至</span>
+                    <input type="date" id="cuotibenDateTo" title="结束日期" onchange="renderCuotibenList()">
+                    <button class="cuotiben-filter-btn" onclick="resetCuotibenFilters()">
+                        <i class="fas fa-undo"></i> 重置
+                    </button>
+                </div>
+
+                <!-- 标签管理区 -->
+                <div class="cuotiben-tags-panel">
+                    <div class="cuotiben-tags-header">
+                        <span><i class="fas fa-tags"></i> 标签筛选</span>
+                        <button class="cuotiben-add-tag-btn" onclick="addCuotibenTag()">
+                            <i class="fas fa-plus"></i> 新建标签
+                        </button>
+                    </div>
+                    <div class="cuotiben-tag-list" id="cuotibenTagList"></div>
+                </div>
+
+                <!-- 统计 + 卡片列表 -->
+                <div class="cuotiben-content" id="cuotibenContent">
+                    <!-- 由 JS 动态渲染 -->
+                </div>
+
+                <!-- 底部 -->
+                <div class="cuotiben-footer">
+                    <span id="cuotibenStats" class="cuotiben-stats">共 0 条错题</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- 错题详情 / 编辑 模态框 -->
+        <div id="cuotibenDetailModal" class="cuotiben-modal" style="display: none;">
+            <div class="cuotiben-container cuotiben-detail-container">
+                <div class="cuotiben-header">
+                    <h2 id="cuotibenDetailTitle"><i class="fas fa-edit"></i> 错题详情</h2>
+                    <button class="close-btn" onclick="closeCuotibenDetail()">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+
+                <div class="cuotiben-detail-body">
+                    <div class="cuotiben-detail-meta" id="cuotibenDetailMeta"></div>
+
+                    <div class="cuotiben-form-group">
+                        <label class="cuotiben-form-label">标题</label>
+                        <input type="text" id="cuotibenEditTitle" class="cuotiben-form-input" placeholder="给这道错题起个标题...">
+                    </div>
+
+                    <div class="cuotiben-form-group">
+                        <label class="cuotiben-form-label">标签</label>
+                        <div class="cuotiben-edit-tags" id="cuotibenEditTags"></div>
+                    </div>
+
+                    <div class="cuotiben-form-group">
+                        <label class="cuotiben-form-label">内容</label>
+                        <textarea id="cuotibenEditContent" class="cuotiben-form-textarea" placeholder="记录错题内容、正确答案、错误分析..."></textarea>
+                    </div>
+
+                    <div class="cuotiben-form-group">
+                        <label class="cuotiben-form-label">
+                            图片
+                            <button class="cuotiben-mini-btn" onclick="document.getElementById('cuotibenImageInput').click()">
+                                <i class="fas fa-plus"></i> 添加图片
+                            </button>
+                        </label>
+                        <input type="file" id="cuotibenImageInput" accept="image/*" multiple style="display:none;" onchange="handleCuotibenImageUpload(this)">
+                        <div class="cuotiben-image-grid" id="cuotibenImageGrid"></div>
+                    </div>
+                </div>
+
+                <div class="cuotiben-detail-footer">
+                    <button class="cuotiben-btn-danger" onclick="confirmDeleteCuotiben()">
+                        <i class="fas fa-trash"></i> 删除
+                    </button>
+                    <div style="flex: 1;"></div>
+                    <button class="cuotiben-btn-secondary" onclick="closeCuotibenDetail()">取消</button>
+                    <button class="cuotiben-btn-primary" onclick="saveCuotibenDetail()">
+                        <i class="fas fa-save"></i> 保存修改
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 创建错题弹窗 -->
+        <div id="cuotibenCreateModal" class="cuotiben-modal" style="display: none;">
+            <div class="cuotiben-container cuotiben-create-container">
+                <div class="cuotiben-header">
+                    <h2><i class="fas fa-plus-circle"></i> 新建错题</h2>
+                    <button class="close-btn" onclick="closeCuotibenCreate()">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+
+                <div class="cuotiben-detail-body">
+                    <div class="cuotiben-form-group">
+                        <label class="cuotiben-form-label">标题 <span class="cuotiben-required">*</span></label>
+                        <input type="text" id="cuotibenNewTitle" class="cuotiben-form-input" placeholder="例如：数学·二次函数求极值">
+                    </div>
+
+                    <div class="cuotiben-form-group">
+                        <label class="cuotiben-form-label">
+                            标签
+                            <button class="cuotiben-mini-btn" onclick="addCuotibenTagInCreate()">
+                                <i class="fas fa-plus"></i> 新建标签
+                            </button>
+                        </label>
+                        <div class="cuotiben-edit-tags" id="cuotibenNewTags"></div>
+                    </div>
+
+                    <div class="cuotiben-form-group">
+                        <label class="cuotiben-form-label">内容 <span class="cuotiben-required">*</span></label>
+                        <textarea id="cuotibenNewContent" class="cuotiben-form-textarea" placeholder="记录题目、你的答案、正确答案、解析、反思..."></textarea>
+                    </div>
+
+                    <div class="cuotiben-form-group">
+                        <label class="cuotiben-form-label">
+                            图片
+                            <span class="cuotiben-hint">（第一张将作为封面）</span>
+                            <button class="cuotiben-mini-btn" onclick="document.getElementById('cuotibenNewImageInput').click()">
+                                <i class="fas fa-image"></i> 选择图片
+                            </button>
+                        </label>
+                        <input type="file" id="cuotibenNewImageInput" accept="image/*" multiple style="display:none;" onchange="handleCuotibenNewImageUpload(this)">
+                        <div class="cuotiben-image-grid" id="cuotibenNewImageGrid"></div>
+                    </div>
+                </div>
+
+                <div class="cuotiben-detail-footer">
+                    <div style="flex: 1;"></div>
+                    <button class="cuotiben-btn-secondary" onclick="closeCuotibenCreate()">取消</button>
+                    <button class="cuotiben-btn-primary" onclick="createCuotibenNote()">
+                        <i class="fas fa-check"></i> 创建
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 贪吃蛇游戏模态框 -->
+        <div id="snakeModal" class="snake-modal" style="display: none;">
+            <div class="snake-container">
+                <div class="snake-header">
+                    <h2><i class="fas fa-gamepad"></i> 🐍 贪吃蛇小游戏</h2>
+                    <button class="close-btn" onclick="closeSnakeGame()">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+
+                <div class="snake-body">
+                    <!-- 模式选择 -->
+                    <div class="snake-mode-selector">
+                        <button class="snake-mode-btn active" onclick="setSnakeMode('single')">
+                            🎮 单机模式
+                        </button>
+                        <button class="snake-mode-btn" onclick="setSnakeMode('multi')">
+                            👥 联机对战
+                        </button>
+                    </div>
+
+                    <!-- 难度选择 -->
+                    <div class="snake-difficulty-selector">
+                        <button class="snake-difficulty-btn active" onclick="setSnakeDifficulty('normal')">
+                            🟢 普通模式
+                        </button>
+                        <button class="snake-difficulty-btn" onclick="setSnakeDifficulty('hard')">
+                            🔴 高难度模式
+                        </button>
+                    </div>
+
+                    <!-- 联机模式信息 -->
+                    <div class="snake-multi-info" id="snakeMultiInfo" style="display: none;">
+                        <p>⌛ 正在匹配玩家... <span class="snake-multi-dots">...</span></p>
+                        <div class="snake-players-info">
+                            <div class="snake-player-box">
+                                <span class="snake-player-icon">🐍</span>
+                                <span class="snake-player-name">玩家1 (你)</span>
+                                <span class="snake-player-score">0</span>
+                            </div>
+                            <div class="snake-player-box snake-player-2">
+                                <span class="snake-player-icon">🐢</span>
+                                <span class="snake-player-name">玩家2</span>
+                                <span class="snake-player-score">0</span>
+                            </div>
+                        </div>
+                        <div class="snake-timer" id="snakeTimer">⏱️ 60秒</div>
+                    </div>
+
+                    <div class="snake-score-panel">
+                        <div class="snake-score-box">
+                            <span class="snake-score-label">当前得分</span>
+                            <span class="snake-score-value" id="snakeScore">0</span>
+                        </div>
+                        <div class="snake-score-box snake-highscore-box">
+                            <span class="snake-score-label">🏆 最高分</span>
+                            <span class="snake-score-value" id="snakeHighScore">0</span>
+                        </div>
+                        <div class="snake-score-box snake-rank-box">
+                            <span class="snake-score-label">⭐ 段位</span>
+                            <span class="snake-score-value" id="snakeRank">青铜</span>
+                        </div>
+                    </div>
+
+                    <div class="snake-canvas-wrap">
+                        <canvas id="snakeCanvas" width="400" height="400"></canvas>
+                        <div class="snake-overlay" id="snakeOverlay">
+                            <div class="snake-overlay-content">
+                                <div class="snake-overlay-title" id="snakeOverlayTitle">🐍 准备开始</div>
+                                <div class="snake-overlay-desc" id="snakeOverlayDesc">选择模式后点击"开始游戏"</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="snake-controls">
+                        <button class="snake-control-btn snake-start-btn" onclick="startSnakeGame()">
+                            <i class="fas fa-play"></i> 开始游戏
+                        </button>
+                        <button class="snake-control-btn snake-pause-btn" onclick="pauseSnakeGame()">
+                            <i class="fas fa-pause"></i> 暂停
+                        </button>
+                        <button class="snake-control-btn snake-reset-btn" onclick="resetSnakeGame()">
+                            <i class="fas fa-redo"></i> 重新开始
+                        </button>
+                    </div>
+
+                    <div class="snake-tips">
+                        <div class="snake-tips-title"><i class="fas fa-keyboard"></i> 操作说明</div>
+                        <div class="snake-tips-grid">
+                            <div class="snake-tip-item">
+                                <span class="snake-key">↑ ↓ ← →</span>
+                                <span class="snake-tip-text">方向键控制移动</span>
+                            </div>
+                            <div class="snake-tip-item">
+                                <span class="snake-key">W A S D</span>
+                                <span class="snake-tip-text">也支持键盘操作</span>
+                            </div>
+                            <div class="snake-tip-item">
+                                <span class="snake-key">Space</span>
+                                <span class="snake-tip-text">空格键暂停/继续</span>
+                            </div>
+                            <div class="snake-tip-item">
+                                <span class="snake-tip-text-green">🟢 绿色 = 蛇身</span>
+                                <span class="snake-tip-text-gold">🟡 金色 = 食物</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 游戏结束弹窗 -->
+                <div class="snake-gameover" id="snakeGameOver" style="display:none;">
+                    <div class="snake-gameover-inner">
+                        <div class="snake-gameover-emoji">💀</div>
+                        <div class="snake-gameover-title">游戏结束</div>
+                        <div class="snake-gameover-score">
+                            <div class="snake-gameover-score-label">本次得分</div>
+                            <div class="snake-gameover-score-value" id="snakeFinalScore">0</div>
+                        </div>
+                        <div class="snake-gameover-highscore" id="snakeNewHighScore" style="display:none;">
+                            🎉 新纪录！刷新了历史最高分
+                        </div>
+                        <div class="snake-gameover-actions">
+                            <button class="snake-control-btn snake-reset-btn" onclick="resetSnakeGame()">
+                                <i class="fas fa-redo"></i> 再来一局
+                            </button>
+                            <button class="snake-control-btn snake-start-btn" onclick="closeSnakeGame()">
+                                <i class="fas fa-door-open"></i> 退出游戏
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 实验室管理模态框 -->
+        <div id="labModal" class="lab-modal" style="display: none;">
+            <div class="lab-container">
+                <button class="modal-close-btn" onclick="closeLabManagement()">✕</button>
+                
+                <div class="lab-header">
+                    <h2><span class="lab-title-icon">🔬</span> 实验室管理系统</h2>
+                    <p class="lab-subtitle">管理实验预约与设备借用</p>
+                </div>
+
+                <div class="lab-body">
+                    <!-- 导航标签 -->
+                    <div class="lab-tabs">
+                        <button class="lab-tab active" onclick="switchLabTab('list')">
+                            <i class="fas fa-building"></i> 实验室列表
+                        </button>
+                        <button class="lab-tab" onclick="switchLabTab('booking')">
+                            <i class="fas fa-calendar"></i> 预约管理
+                        </button>
+                        <button class="lab-tab" onclick="switchLabTab('equipment')">
+                            <i class="fas fa-flask"></i> 设备管理
+                        </button>
+                        <button class="lab-tab" onclick="switchLabTab('safety')">
+                            <i class="fas fa-shield-alt"></i> 安全须知
+                        </button>
+                    </div>
+
+                    <!-- 实验室列表 -->
+                    <div class="lab-content" id="labContent">
+                        <div class="lab-list" id="labList">
+                            <!-- 实验室卡片会动态生成 -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 新增设备模态框 -->
+        <div id="addEquipmentModal" class="lab-modal" style="display: none;">
+            <div class="lab-container" style="max-width: 500px;">
+                <button class="modal-close-btn" onclick="closeAddEquipmentModal()">✕</button>
+                
+                <div class="lab-header">
+                    <h2><span class="lab-title-icon">➕</span> 新增实验室设备</h2>
+                    <p class="lab-subtitle">添加新的实验器材到系统</p>
+                </div>
+
+                <div class="lab-body">
+                    <div style="padding: 20px;">
+                        <div style="margin-bottom: 20px;">
+                            <label style="color: white; display: block; margin-bottom: 8px;">设备名称</label>
+                            <input type="text" id="equipmentName" placeholder="请输入设备名称" style="width: 100%; padding: 12px; border: 2px solid rgba(148, 163, 184, 0.3); border-radius: 10px; background: rgba(255, 255, 255, 0.05); color: white; font-size: 14px;">
+                        </div>
+                        
+                        <div style="margin-bottom: 20px;">
+                            <label style="color: white; display: block; margin-bottom: 8px;">所属实验室</label>
+                            <select id="equipmentLab" style="width: 100%; padding: 12px; border: 2px solid rgba(148, 163, 184, 0.3); border-radius: 10px; background: rgba(255, 255, 255, 0.05); color: white; font-size: 14px;">
+                                <option value="1">计算机科学实验室</option>
+                                <option value="2">电子工程实验室</option>
+                                <option value="3">物理实验中心</option>
+                                <option value="4">化学实验室</option>
+                                <option value="5">生物实验室</option>
+                                <option value="6">人工智能实验室</option>
+                            </select>
+                        </div>
+                        
+                        <button onclick="addEquipment()" style="width: 100%; padding: 14px; background: linear-gradient(135deg, #10b981 0%, #059669 100%); border: none; border-radius: 10px; color: white; font-size: 16px; cursor: pointer;">
+                            确认添加
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 校园跑模态框 -->
+        <div id="campusRunModal" class="campus-run-modal" style="display: none;">
+            <div class="campus-run-container">
+                <div class="campus-run-header">
+                    <button class="close-btn" onclick="closeCampusRun()">
+                        <i class="fas fa-times"></i>
+                    </button>
+                    <h2><span class="campus-run-title-icon">🏃</span> 校园跑测试系统</h2>
+                    <p class="campus-run-subtitle">虚拟跑步者测试工具 - 模拟真实GPS轨迹</p>
+                </div>
+
+                <div class="campus-run-body">
+                    <!-- 跑步状态面板 -->
+                    <div class="campus-run-status">
+                        <div class="status-card">
+                            <span class="status-icon">📍</span>
+                            <span class="status-label">当前位置</span>
+                            <span class="status-value" id="runCurrentLocation">上海大学嘉定校区</span>
+                        </div>
+                        <div class="status-card">
+                            <span class="status-icon">🏃</span>
+                            <span class="status-label">今日里程</span>
+                            <span class="status-value" id="runDistance">0.00 km</span>
+                        </div>
+                        <div class="status-card">
+                            <span class="status-icon">⏱️</span>
+                            <span class="status-label">跑步时长</span>
+                            <span class="status-value" id="runDuration">00:00</span>
+                        </div>
+                        <div class="status-card">
+                            <span class="status-icon">🔥</span>
+                            <span class="status-label">消耗热量</span>
+                            <span class="status-value" id="runCalories">0 kcal</span>
+                        </div>
+                    </div>
+
+                    <!-- 高德地图区域 - 手绘路线时显示 -->
+                    <div id="gaodeMapContainer" class="gaode-map-container" style="display: none;">
+                        <div id="gaodeMap" class="gaode-map-display"></div>
+                        <div class="map-draw-controls">
+                            <div class="map-draw-status" id="mapDrawStatus">
+                                <i class="fas fa-map-marker-alt"></i> 拖动地图找到合适位置，然后点击"开始绘制"
+                            </div>
+                            <div class="map-action-area">
+                                <div class="map-draw-buttons" id="mapDrawButtons">
+                                    <button class="draw-btn start-btn" onclick="startDrawMode()">
+                                        <i class="fas fa-play"></i> 开始绘制
+                                    </button>
+                                    <button class="draw-btn cancel-btn" onclick="cancelDrawMode()" style="display: none;">
+                                        <i class="fas fa-times"></i> 取消绘制
+                                    </button>
+                                </div>
+                                <div class="map-position-buttons" id="mapPositionButtons" style="display: none;">
+                                    <button class="draw-btn confirm-position-btn" onclick="confirmPosition()">
+                                        <i class="fas fa-check-circle"></i> 完成定位
+                                    </button>
+                                </div>
+                                <div class="map-draw-line-buttons" id="mapDrawLineButtons" style="display: none;">
+                                    <button class="draw-btn finish-draw-btn" onclick="finishDrawingLine()">
+                                        <i class="fas fa-stop-circle"></i> 结束画线
+                                    </button>
+                                </div>
+                                <div class="map-draw-result" id="mapDrawResult" style="display: none;">
+                                    <button class="draw-btn confirm-btn" onclick="confirmRoute()">
+                                        <i class="fas fa-check"></i> 确认路线
+                                    </button>
+                                    <button class="draw-btn redo-btn" onclick="redoRoute()">
+                                        <i class="fas fa-redo"></i> 重新绘制
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="map-result-info" id="mapResultInfo" style="display: none;">
+                                <span class="result-icon">✅</span>
+                                <span class="result-text">路线绘制完成！</span>
+                                <span class="result-distance">距离: <span id="routeDistance">0</span> km</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 虚拟跑步者测试工具 -->
+                    <div class="virtual-runner-section">
+                        <h4><i class="fas fa-robot"></i> 虚拟跑步者测试</h4>
+                        
+                        <div class="route-selector">
+                            <label>选择测试路线:</label>
+                            <select id="routeSelector">
+                                <option value="campus-loop">🏫 校园环路 (3.0km)</option>
+                                <option value="library-sports">📚 图书馆-体育场 (1.5km)</option>
+                                <option value="dorm-canteen">🏠 宿舍-食堂 (2.0km)</option>
+                                <option value="playground-track">🏃 操场跑道 (400m)</option>
+                                <option value="custom-draw">✏️ 手绘路线</option>
+                                <option value="random-walk">🎲 随机漫步</option>
+                            </select>
+                        </div>
+
+                        <!-- 速度控制 -->
+                        <div class="speed-control" style="margin-top: 12px;">
+                            <label style="display: flex; justify-content: space-between; font-size: 12px; color: #64748b; margin-bottom: 6px;">
+                                <span><i class="fas fa-gauge"></i> 跑步速度</span>
+                                <span id="currentSpeedValue">8 km/h</span>
+                            </label>
+                            <input type="range" id="speedSlider" min="1" max="15" value="8" step="0.5" style="width: 100%;">
+                            <div style="display: flex; justify-content: space-between; font-size: 10px; color: #94a3b8; margin-top: 4px;">
+                                <span>1 km/h</span>
+                                <span>8 km/h (慢跑)</span>
+                                <span>15 km/h (快跑)</span>
+                            </div>
+                        </div>
+
+                        <div class="gps-display">
+                            <p>当前模拟GPS坐标:</p>
+                            <p class="gps-coords" id="currentGps">经度: ---, 纬度: ---</p>
+                            <p>速度: <span id="currentSpeed">0</span> km/h</p>
+                        </div>
+
+                        <div class="simulation-controls">
+                            <button class="simulation-btn start" onclick="startVirtualRunner()">
+                                <i class="fas fa-play"></i> 启动模拟
+                            </button>
+                            <button class="simulation-btn stop" onclick="stopVirtualRunner()">
+                                <i class="fas fa-stop"></i> 停止模拟
+                            </button>
+                            <button class="simulation-btn export" onclick="exportTrackData()">
+                                <i class="fas fa-download"></i> 导出轨迹
+                            </button>
+                        </div>
+
+                        <div class="simulation-status" id="simulationStatus">
+                            <i class="fas fa-circle"></i> 已停止 - 点击"启动模拟"开始测试
+                            <div class="track-points" id="trackPoints">
+                            <!-- 轨迹点会显示在这里 -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 其他功能入口 -->
+                <div class="campus-run-other-features">
+                    <h4><i class="fas fa-grid"></i> 其他功能</h4>
+                    <div class="feature-grid">
+                        <!-- 错题本入口 -->
+                        <button class="feature-btn cuotiben-btn" onclick="openCuotibenModal()">
+                            <span class="feature-icon">📝</span>
+                            <span class="feature-label">错题本</span>
+                            <span class="feature-sub">管理我的错题笔记</span>
+                        </button>
+                        <!-- 贪吃蛇小游戏入口 -->
+                        <button class="feature-btn snake-btn" onclick="openSnakeGame()">
+                            <span class="feature-icon">🐍</span>
+                            <span class="feature-label">贪吃蛇</span>
+                            <span class="feature-sub">经典小游戏 · 挑战最高分</span>
+                        </button>
+                        <!-- 实验室管理入口 -->
+                        <button class="feature-btn lab-btn" onclick="openLabManagement()">
+                            <span class="feature-icon">🔬</span>
+                            <span class="feature-label">实验室管理</span>
+                            <span class="feature-sub">预约实验台 · 设备管理</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- 跑步地图区域 -->
+                <div class="campus-run-map-area">
+                    <div class="run-map-container">
+                        <canvas id="runMapCanvas" width="300" height="200"></canvas>
+                        <div class="run-animation"></div>
+                    </div>
+                </div>
+
+                <!-- 控制按钮 -->
+                <div class="campus-run-controls">
+                    <button class="run-control-btn run-start-btn" id="runStartBtn" onclick="startCampusRun()">
+                        <i class="fas fa-play"></i> 开始跑步
+                    </button>
+                    <button class="run-control-btn run-pause-btn" id="runPauseBtn" onclick="pauseCampusRun()" style="display:none;">
+                        <i class="fas fa-pause"></i> 暂停跑步
+                    </button>
+                    <button class="run-control-btn run-stop-btn" id="runStopBtn" onclick="stopCampusRun()" style="display:none;">
+                        <i class="fas fa-stop"></i> 结束跑步
+                    </button>
+                </div>
+
+                <!-- 跑步记录 -->
+                <div class="campus-run-history">
+                    <h3><i class="fas fa-history"></i> 跑步记录</h3>
+                    <div class="history-list" id="runHistoryList">
+                        <p class="no-history">暂无跑步记录</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="footer">
+            <p>&copy; 2024 上海大学嘉定校区·跑刀论坛</p>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
